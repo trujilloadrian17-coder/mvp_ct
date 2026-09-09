@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CimaTrust - Panel de Validación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 m-4 border border-slate-100 relative overflow-hidden">
+        
+        <div id="status-banner" class="flex items-center justify-center space-x-2 mb-6 text-emerald-600 bg-emerald-50 py-2 rounded-full font-medium text-sm transition-all">
+            <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span id="status-text">Listo para iniciar verificación</span>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-black tracking-wider text-slate-800">CIMATRUST</h1>
+                <span id="badge-score" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-500">-- %</span>
+            </div>
+
+            <div class="border-t border-slate-100 pt-3">
+                <p class="text-xs text-slate-400 font-semibold uppercase">Identidad Seudonimizada</p>
+                <p id="user-alias" class="text-base font-bold text-slate-700">@Usuario_Pendiente</p>
+                <p id="folio-text" class="text-xs text-slate-400">Folio: Pendiente</p>
+            </div>
+
+            <div class="space-y-2 pt-2">
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">Prueba de vida</span>
+                    <span id="val-biometria" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">INE Oficial</span>
+                    <span id="val-ine" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">Estatus Financiero</span>
+                    <span id="val-financiero" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-slate-300 p-3 rounded-xl text-[10px] font-mono break-all">
+                <span class="text-slate-500 block mb-0.5">SHA-256 HASH INALTERABLE:</span>
+                <span id="hash-display">00000000000000000000000000000000</span>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <button id="btn-verificar" onclick="ejecutarVerificacion()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center space-x-2">
+                <span>Ejecutar Verificación Biométrica</span>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        async function ejecutarVerificacion() {
+            const btn = document.getElementById('btn-verificar');
+            const statusText = document.getElementById('status-text');
+            const statusBanner = document.getElementById('status-banner');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            statusText.innerText = "Procesando biometría y cruce con INE...";
+            statusBanner.className = "flex items-center justify-center space-x-2 mb-6 text-amber-600 bg-amber-50 py-2 rounded-full font-medium text-sm transition-all";
+
+            try {
+                const response = await fetch('/api/verificar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alias: "@Adrian_Trust94" })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('user-alias').innerText = data.alias;
+                    document.getElementById('folio-text').innerText = "Folio: " + data.folio;
+                    document.getElementById('badge-score').innerText = data.porcentajeConfianza;
+                    document.getElementById('badge-score').className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700";
+                    
+                    document.getElementById('val-biometria').innerText = data.biometria;
+                    document.getElementById('val-biometria').className = "text-emerald-600 font-bold";
+                    
+                    document.getElementById('val-ine').innerText = data.ine;
+                    document.getElementById('val-ine').className = "text-emerald-600 font-bold";
+                    
+                    document.getElementById('val-financiero').innerText = data.financiero;
+                    document.getElementById('val-financiero').className = "text-emerald-600 font-bold";
+
+                    document.getElementById('hash-display').innerText = data.hashSha256;
+
+                    statusText.innerText = "Seguro para proceder la venta";
+                    statusBanner.className = "flex items-center justify-center space-x-2 mb-6 text-emerald-600 bg-emerald-50 py-2 rounded-full font-medium text-sm transition-all";
+                }
+            } catch (error) {
+                console.error("Error de conexión:", error);
+                statusText.innerText = "Error en la red de validación";
+                statusBanner.className = "flex items-center justify-center space-x-2 mb-6 text-rose-600 bg-rose-50 py-2 rounded-full font-medium text-sm transition-all";
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>
