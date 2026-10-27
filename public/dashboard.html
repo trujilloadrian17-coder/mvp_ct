@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CimaTrust - Panel de Validación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 m-4 border border-slate-100 relative overflow-hidden">
+        
+        <div id="status-banner" class="flex items-center justify-center space-x-2 mb-6 text-emerald-600 bg-emerald-50 py-2 rounded-full font-medium text-sm transition-all">
+            <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span id="status-text">Listo para iniciar verificación</span>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-black tracking-wider text-slate-800">CIMATRUST</h1>
+                <span id="badge-score" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-500">-- %</span>
+            </div>
+
+            <div class="border-t border-slate-100 pt-3">
+                <p class="text-xs text-slate-400 font-semibold uppercase">Identidad Seudonimizada</p>
+                <p id="user-alias" class="text-base font-bold text-slate-700">@Usuario_Pendiente</p>
+                <p id="folio-text" class="text-xs text-slate-400">Folio: Pendiente</p>
+            </div>
+
+            <div class="space-y-2 pt-2">
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">Prueba de vida</span>
+                    <span id="val-biometria" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">INE Oficial</span>
+                    <span id="val-ine" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">Estatus Financiero</span>
+                    <span id="val-financiero" class="text-slate-400 font-bold">Esperando...</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-slate-300 p-3 rounded-xl text-[10px] font-mono break-all">
+                <span class="text-slate-500 block mb-0.5">SHA-256 HASH INALTERABLE:</span>
+                <span id="hash-display">00000000000000000000000000000000</span>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <button id="btn-verificar" onclick="ejecutarVerificacion()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center space-x-2">
+               <!-- Contenedor del Motor Biométrico -->
+<div id="biometric-scanner-box" class="hidden mb-4 p-4 bg-slate-900 rounded-2xl text-center text-white relative overflow-hidden border border-slate-700">
+    <div class="absolute inset-0 bg-emerald-500/10 animate-pulse pointer-events-none"></div>
+    <div class="relative z-10 flex flex-col items-center space-y-3">
+        <!-- Simulación de cuadro de captura facial -->
+        <div class="w-24 h-24 rounded-full border-2 border-dashed border-emerald-400 flex items-center justify-center animate-spin-slow">
+            <svg class="w-10 h-10 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        </div>
+        <p id="biometric-status-text" class="text-xs font-mono text-emerald-300">Conectando con base de datos oficial...</p>
+    </div>
+</div>
+ <span>Ejecutar Verificación Biométrica</span>
+            </button>
+            <!-- Vista de Escaneo Biométrico en Vivo con Cámara Web -->
+<div id="camera-container" class="hidden mb-4 p-3 bg-slate-900 rounded-2xl text-center text-white relative overflow-hidden border border-emerald-500/30">
+    <div class="relative w-full h-48 bg-black rounded-xl overflow-hidden flex items-center justify-center">
+        <!-- Video en Vivo de la Cámara -->
+        <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"></video>
+
+        <!-- Marco de Enfoque Facial -->
+        <div class="absolute inset-0 border-2 border-emerald-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+            <div class="w-32 h-40 border-2 border-dashed border-emerald-400 rounded-full animate-pulse"></div>
+        </div>
+    </div>
+    <p id="cam-status" class="text-xs font-mono text-emerald-400 mt-2">Apuntando al rostro - Analizando biometría facial...</p>
+</div>
+
+<!-- Botón de Acción -->
+<button id="btn-verificar" onclick="ejecutarVerificacionConCamara()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
+    Ejecutar Verificación Biométrica
+</button>
+        </div>
+
+    </div>
+
+    <script>
+       async function ejecutarVerificacionConCamara() {
+    const btn = document.getElementById('btn-verificar');
+    const cameraContainer = document.getElementById('camera-container');
+    const videoElement = document.getElementById('webcam-video');
+    const camStatus = document.getElementById('cam-status');
+
+    btn.disabled = true;
+    btn.innerText = "Escaneando Rostro...";
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    // Mostrar el cuadro de la cámara
+    cameraContainer.classList.remove('hidden');
+
+    try {
+        // Pedir permiso y encender la cámara web real
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        videoElement.srcObject = stream;
+
+        // Fase 1: Captura de rostro en tiempo real (1.5s)
+        await new Promise(r => setTimeout(r, 1500));
+        camStatus.innerText = "Cotejando rostro con Padrón INE...";
+        camStatus.className = "text-xs font-mono text-amber-400 mt-2";
+
+        // Fase 2: Verificación de coincidencia (1.5s)
+        await new Promise(r => setTimeout(r, 1500));
+        camStatus.innerText = "¡Match exitoso! Finalizando diagnóstico...";
+        camStatus.className = "text-xs font-mono text-emerald-300 mt-2";
+
+        // Apagar la cámara web
+        stream.getTracks().forEach(track => track.stop());
+        cameraContainer.classList.add('hidden');
+
+        // Actualizar datos del Dashboard
+        document.getElementById('val-ine').innerText = "Verificado (Match Biométrico 99.8%)";
+        document.getElementById('val-ine').className = "text-emerald-600 font-semibold";
+
+        document.getElementById('val-financiero').innerText = "Sin Reportes / Reputación Válida";
+        document.getElementById('val-financiero').className = "text-emerald-600 font-semibold";
+
+        document.getElementById('hash-display').innerText = "a3f89c21b9e47d602183c9a01274f8e6c3d2b1a9";
+
+        const statusText = document.getElementById('status-text');
+        const statusBanner = document.getElementById('status-banner');
+
+        statusText.innerText = "Seguro para proceder la venta";
+        statusBanner.className = "flex items-center justify-center space-x-2 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2 rounded-xl text-xs font-semibold mb-4";
+
+        btn.disabled = false;
+        btn.innerText = "Verificación Completada";
+        btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-emerald-600', 'hover:bg-emerald-700');
+        btn.classList.add('bg-slate-800', 'cursor-default');
+
+    } catch (error) {
+        console.error("Error al acceder a la cámara:", error);
+        alert("Por favor concede permisos para usar la cámara web en la demostración.");
+        cameraContainer.classList.add('hidden');
+        btn.disabled = false;
+        btn.innerText = "Reintentar Verificación";
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+        
+    </script>
+</body>
+</html>
